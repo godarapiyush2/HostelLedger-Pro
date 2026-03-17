@@ -25,9 +25,13 @@ Traditional hostel management relies on manual entry of bank statements into spr
 
 # ⚙️ Installation & Setup
 
-### 1. Database Setup
+## 1. Database Setup
 Create a MySQL database and run the following schema:
 ```sql
 CREATE DATABASE hostel_finance;
 -- Import schema.sql from the /db folder
+## Install Dependencies 
+pip install -r requirements.txt
 
+## Run the Application
+python app.py
