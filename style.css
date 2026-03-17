@@ -1,0 +1,10 @@
+body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; }
+.card { background-color: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 10px; }
+.btn-primary { background-color: #bb86fc; border: none; color: #000; }
+.table { color: #fff; }
+.alert-warning { background-color: #cf6679; color: white; border: none; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #e0e0e0; }
+.text-purple {
+    
+    color: #bb86fc !important; 
+}

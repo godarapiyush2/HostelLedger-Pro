@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hostel Analyzer{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+        .navbar { background: #1e1e1e; border-bottom: 1px solid #333; }
+        .text-purple { color: #bb86fc !important; }
+        .btn-purple { background: #bb86fc; color: black; font-weight: bold; border: none; }
+        .btn-purple:hover { background: #9d4edd; color: white; transition: 0.3s; }
+        .nav-link { color: #aaa !important; transition: 0.3s; }
+        .nav-link:hover { color: #bb86fc !important; }
+        .nav-link.active { color: #bb86fc !important; font-weight: bold; }
+        
+        @media print {
+            .navbar, .btn, .alert { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .card { border: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <span class="text-purple">Hostel</span> Analyzer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role == 'Warden' %}
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('upload_file') }}">Upload Statement</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_categories') }}">Manage Categories</a></li>
+                        {% elif current_user.role == 'Admin' %}
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Warden Management</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('owner_analytics') }}">Financial Hub</a></li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('export_excel') }}" class="btn btn-sm btn-success me-3">
+                                <i class="bi bi-file-earmark-excel"></i> Download Excel
+                            </a>
+                        </li>
+                        <li class="nav-item me-3">
+                            <span class="badge bg-dark border border-secondary text-muted">
+                                {{ current_user.role }} : {{ current_user.name }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Sign In</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

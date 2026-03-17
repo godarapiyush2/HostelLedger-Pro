@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Review Transactions{% endblock %}
+
+{% block content %}
+<style>
+    body { background-color: #121212; color: #e4e6eb; }
+    .table-dark { background-color: #1e1e1e; border: 1px solid #333; }
+    
+    /* FIX: Description Visibility */
+    .description-text { 
+        color: #ffffff !important; 
+        font-weight: 500;
+        max-width: 280px;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    th { color: #ffffff !important; background-color: #252525 !important; text-transform: uppercase; font-size: 0.8rem; }
+    .text-purple { color: #bb86fc !important; }
+    .btn-purple { background-color: #6f42c1; color: white; border: none; }
+    .btn-purple:hover { background-color: #5a32a3; color: white; }
+    
+    .badge-debit { background: #ff4d4d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; }
+    .badge-credit { background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; }
+</style>
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">Review <span class="text-purple">Bank</span> Transactions</h2>
+        <div>
+            <button type="button" class="btn btn-purple btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Quick Category</button>
+            <a href="{{ url_for('manage_categories') }}" class="btn btn-info btn-sm">Manage All</a>
+        </div>
+    </div>
+
+    <div class="alert alert-dark border-secondary d-flex justify-content-between align-items-center mb-4 shadow-sm">
+        <div class="progress w-75" style="height: 12px; background-color: #333;">
+            <div id="progress-bar" class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>
+        </div>
+        <span class="small text-white ms-3"><span id="completed-count">0</span> / {{ transactions|length }} Records</span>
+    </div>
+
+    <form action="{{ url_for('save_bulk') }}" method="POST">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>DESCRIPTION</th>
+                        <th>AMOUNT (₹)</th>
+                        <th>TYPE</th>
+                        <th>ACCOUNT TYPE</th>
+                        <th>CATEGORY</th>
+                        <th>NOTES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in transactions %}
+                    {% set t_type = 'Credit' if row.credit > 0 else 'Debit' %}
+                    {% set amt = row.credit if row.credit > 0 else row.debit %}
+                    <tr>
+                        <td>{{ row.date }}<input type="hidden" name="date[]" value="{{ row.date }}"></td>
+                        <td>
+                            <span class="description-text" title="{{ row.description }}">{{ row.description }}</span>
+                            <input type="hidden" name="description[]" value="{{ row.description }}">
+                        </td>
+                        <td><strong class="text-white">₹{{ amt }}</strong><input type="hidden" name="amount[]" value="{{ amt }}"></td>
+                        <td><span class="badge-{{ t_type|lower }}">{{ t_type }}</span><input type="hidden" name="type[]" value="{{ t_type }}"></td>
+                        <td>
+                            <select name="account_type[]" class="form-select form-select-sm bg-dark text-white" onchange="toggleCategory(this, '{{ loop.index0 }}')">
+                                <option value="Personal" selected>Personal</option>
+                                <option value="Hostel">Hostel</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div id="cat_container_{{ loop.index0 }}" style="display: none;">
+                                <select name="category_id[]" id="cat_{{ loop.index0 }}" class="form-select form-select-sm bg-dark text-white">
+                                    <option value="">-- Select --</option>
+                                    {% for cat in categories if cat.transaction_type == t_type %}
+                                    <option value="{{ cat.id }}" {% if cat.category_name == row.suggested_category %}selected{% endif %}>{{ cat.category_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <span class="text-info small" id="sug_{{ loop.index0 }}">Auto: {{ row.suggested_category }}</span>
+                        </td>
+                        <td><input type="text" name="note[]" class="form-control form-control-sm bg-dark text-white border-secondary"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-end gap-3 mt-4 mb-5">
+            <button type="submit" name="action" value="save_draft" class="btn btn-outline-info">Save Draft</button>
+            <button type="submit" name="action" value="finalize" class="btn btn-purple px-5">Finalize & Save All</button>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary"><h5 class="modal-title text-purple">Quick Add</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="text" id="new_cat_name" class="form-control bg-dark text-white mb-3" placeholder="Category Name">
+                <select id="new_cat_type" class="form-select bg-dark text-white"><option value="Debit">Debit</option><option value="Credit">Credit</option></select>
+            </div>
+            <div class="modal-footer border-secondary"><button type="button" class="btn btn-purple" onclick="submitQuickCategory()">Save</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleCategory(select, index) {
+        const container = document.getElementById('cat_container_' + index);
+        const suggestion = document.getElementById('sug_' + index);
+        container.style.display = select.value === 'Hostel' ? 'block' : 'none';
+        suggestion.style.display = select.value === 'Hostel' ? 'none' : 'inline';
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const rows = document.querySelectorAll('tbody tr');
+        let done = 0;
+        rows.forEach((row, i) => {
+            const acc = row.querySelector('select[name="account_type[]"]').value;
+            const cat = document.getElementById('cat_' + i).value;
+            if (acc === 'Personal' || (acc === 'Hostel' && cat !== "")) done++;
+        });
+        const pct = Math.round((done / rows.length) * 100);
+        document.getElementById('progress-bar').style.width = pct + '%';
+        document.getElementById('completed-count').innerText = done;
+    }
+
+    function submitQuickCategory() {
+        const name = document.getElementById('new_cat_name').value;
+        const type = document.getElementById('new_cat_type').value;
+        const params = new URLSearchParams();
+        params.append('category_name', name);
+        params.append('transaction_type', type);
+
+        fetch("{{ url_for('manage_categories') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "XMLHttpRequest" },
+            body: params
+        }).then(res => res.ok ? location.reload() : alert("Failed"));
+    }
+    
+    document.addEventListener('DOMContentLoaded', updateProgress);
+</script>
+{% endblock %}

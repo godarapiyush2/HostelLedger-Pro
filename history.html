@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction History | Smart Hostel Finance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><span class="text-purple">Saved</span> Transaction History</h2>
+        <div>
+            <a href="{{ url_for('upload_file') }}" class="btn btn-outline-light btn-sm">Upload New</a>
+            <button class="btn btn-purple btn-sm ms-2" onclick="window.print()">Print Report</button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary p-3">
+                <small class="text-muted">Total Records</small>
+                <h3 class="mb-0">{{ history|length }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-dark text-white border-secondary shadow-lg">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle small">
+                    <thead>
+                        <tr class="text-muted border-secondary">
+                            <th>DATE</th>
+                            <th>DESCRIPTION</th>
+                            <th>AMOUNT</th>
+                            <th>TYPE</th>
+                            <th>ACCOUNT</th>
+                            <th>CATEGORY</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in history %}
+                        <tr>
+                            <td>{{ txn.date }}</td>
+                            <td><div class="text-truncate" style="max-width: 250px;">{{ txn.description }}</div></td>
+                            <td class="fw-bold text-white">₹{{ txn.amount }}</td>
+                            <td>
+                                <span class="badge {% if txn.transaction_type == 'Credit' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ txn.transaction_type }}
+                                </span>
+                            </td>
+                            <td>{{ txn.account_type }}</td>
+                            <td>
+                                {% if txn.category %}
+                                    <span class="text-info">{{ txn.category.category_name }}</span>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if txn.is_draft %}
+                                    <span class="badge border border-warning text-warning">Draft</span>
+                                {% else %}
+                                    <span class="badge border border-success text-success">Finalized</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">No transactions found in SQL database.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

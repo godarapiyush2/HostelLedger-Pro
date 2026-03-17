@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | Hostel Finance Manager{% endblock %}
+
+{% block content %}
+<style>
+    body { background-color: #121212; color: #e4e6eb; }
+    
+    /* Stats Cards */
+    .stat-card {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .bg-purple-light { background-color: rgba(187, 134, 252, 0.1); color: #bb86fc; }
+    .bg-info-light { background-color: rgba(3, 218, 198, 0.1); color: #03dac6; }
+
+    /* Table & Warden List */
+    .warden-card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 12px; }
+    .table-dark { background-color: transparent !important; }
+    th { color: #888 !important; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333 !important; }
+    td { color: #ffffff !important; vertical-align: middle; border-color: #333; }
+    
+    .btn-purple { background-color: #bb86fc; color: #121212; font-weight: bold; border: none; }
+    .btn-purple:hover { background-color: #9965f4; color: white; }
+    
+    .text-purple { color: #bb86fc !important; }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-white mb-0">Admin <span class="text-purple">Dashboard</span></h2>
+            <p class="text-muted small">Overview of system wardens and hostel performance</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('owner_analytics') }}" class="btn btn-outline-info btn-sm">View Analytics</a>
+            <a href="{{ url_for('add_warden') }}" class="btn btn-purple btn-sm">+ Add New Warden</a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card p-3 d-flex align-items-center shadow-sm">
+                <div class="icon-box bg-purple-light me-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <h3 class="text-white mb-0">{{ wardens|length }}</h3>
+                    <span class="text-muted small">Total Wardens</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card p-3 d-flex align-items-center shadow-sm">
+                <div class="icon-box bg-info-light me-3">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <h3 class="text-white mb-0">System</h3>
+                    <span class="text-muted small">Status: Secure</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="warden-card p-4 shadow-lg">
+                <h5 class="text-white mb-4">Warden Management</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>WARDEN NAME</th>
+                                <th>EMAIL ADDRESS</th>
+                                <th>ROLE</th>
+                                <th class="text-end">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for warden in wardens %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                            {{ warden.name[0].upper() }}
+                                        </div>
+                                        <span class="fw-bold">{{ warden.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ warden.email }}</td>
+                                <td><span class="badge bg-dark border border-secondary">{{ warden.role }}</span></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-pencil"></i></button>
+                                    <a href="{{ url_for('delete_warden', id=warden.id) }}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Are you sure you want to delete this warden? This cannot be undone.')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="bi bi-person-x d-block mb-2" style="font-size: 2rem;"></i>
+                                    No wardens registered yet. 
+                                    <br>
+                                    <a href="{{ url_for('add_warden') }}" class="text-purple">Add a warden to start managing statements.</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Admin Financial Hub | Smart Hostel{% endblock %}
+
+{% block content %}
+{% if current_user.role != 'Admin' %}
+<div class="container mt-5 text-center">
+    <div class="card bg-dark border-danger p-5">
+        <h1 class="text-danger mb-3">⚠️ Access Denied</h1>
+        <p class="text-white">Only the <strong>Admin/Owner</strong> is authorized to view financial charts and expenditure tables.</p>
+        <div class="mt-4">
+            <a href="{{ url_for('upload_file') }}" class="btn btn-purple">Back to My Work</a>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .card-stat { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; transition: 0.3s; }
+    .card-stat:hover { transform: translateY(-5px); border-color: #bb86fc; }
+    .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #888; letter-spacing: 1px; }
+    .stat-value { font-size: 1.8rem; font-weight: bold; }
+    .chart-card { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; height: 100%; }
+    .list-group-item { background: transparent; border-color: #333; color: #d0d0d0; }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">Financial <span class="text-purple">Analytics</span> Hub</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-people me-1"></i> Warden Management
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card card-stat p-4 text-center">
+                <div class="stat-label mb-2">Hostel Income</div>
+                <div class="stat-value text-purple">₹{{ "{:,.2f}".format(income) }}</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-stat p-4 text-center">
+                <div class="stat-label mb-2">Hostel Expenses</div>
+                <div class="stat-value text-danger">₹{{ "{:,.2f}".format(expense) }}</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card card-stat p-4 text-center">
+                <div class="stat-label mb-2">Net Profit</div>
+                <div class="stat-value text-success">₹{{ "{:,.2f}".format(profit) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card chart-card p-4">
+                <h5 class="text-white mb-4">Expense Distribution</h5>
+                <div style="height: 300px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-4">
+            <div class="card chart-card p-4">
+                <h5 class="text-white mb-4">Category Breakdown</h5>
+                <ul class="list-group list-group-flush">
+                    {% if labels %}
+                        {% for i in range(labels|length) %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            {{ labels[i] }}
+                            <span class="badge bg-dark border border-secondary text-purple">₹{{ "{:,.2f}".format(values[i]) }}</span>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-muted text-center py-5">No transaction data recorded yet.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const labels = {{ labels|default([])|tojson }};
+    const values = {{ values|default([])|tojson }};
+
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ['#bb86fc', '#03dac6', '#ffce56', '#cf6679', '#03a9f4', '#ff9f40'],
+                borderColor: '#1e1e1e',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#aaa', font: { size: 11 }, padding: 15 }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

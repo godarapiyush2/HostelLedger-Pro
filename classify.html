@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-card" style="text-align: left;">
+    <h2 style="color: #bb86fc; text-align: center;">Classify Transaction</h2>
+    
+    <div style="background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333;">
+        <p><strong>Date:</strong> {{ entry.date }}</p>
+        <p><strong>Description:</strong> {{ entry.description }}</p>
+        <p><strong>Amount:</strong> ₹{{ entry.debit if entry.debit > 0 else entry.credit }}</p>
+    </div>
+
+    <form action="/save_entry" method="post">
+        <label>Is this Personal or Hostel?</label>
+        <select name="main_cat" id="main_cat" onchange="updateUI()" class="btn">
+            <option value="Hostel">Hostel</option>
+            <option value="Personal">Personal</option>
+        </select>
+
+        <div id="hostel_questions">
+            {% if entry.debit > 0 %}
+                <label>Paid To (Expense):</label>
+                <select name="sub_cat" class="btn">
+                    <option value="Grocery Store">Grocery Store</option>
+                    <option value="Maintenance">Maintenance Service</option>
+                    <option value="Staff">Mess Staff</option>
+                </select>
+            {% else %}
+                <label>Source (Credit):</label>
+                <select name="sub_cat" class="btn">
+                    <option value="Student Fees">Student Fees</option>
+                    <option value="Hostel Fund">Hostel Fund</option>
+                </select>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn">Save & Next Entry</button>
+    </form>
+</div>
+
+<script>
+    function updateUI() {
+        var isPersonal = document.getElementById('main_cat').value === 'Personal';
+        document.getElementById('hostel_questions').style.display = isPersonal ? 'none' : 'block';
+    }
+    window.onload = updateUI;
+</script>
+{% endblock %}

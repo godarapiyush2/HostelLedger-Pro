@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Statement | Smart Hostel Finance{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card bg-dark text-white border-secondary p-4 shadow-lg mt-5" style="background-color: #1e1e1e !important;">
+            <div class="card-body text-center">
+                <h2 class="mb-4">Smart <span class="text-purple">Hostel</span> Finance</h2>
+                <p class="text-muted">Upload your Bank Statement (Excel/XLSX) to begin classification.</p>
+                
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-warning py-2 small">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <input type="file" name="file" class="form-control bg-dark text-white border-secondary" accept=".xlsx, .xls" required>
+                    </div>
+                    <button type="submit" class="btn btn-purple btn-lg w-100">Upload & Process</button>
+                </form>
+                
+                <div class="mt-4 border-top border-secondary pt-3">
+                    <a href="{{ url_for('manage_categories') }}" class="text-purple text-decoration-none small">
+                        Manage Categories (MCQ Options) →
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="{{ url_for('admin_dashboard') if current_user.role == 'Admin' else '#' }}" class="text-muted small text-decoration-none">
+                ← Return to Panel
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
